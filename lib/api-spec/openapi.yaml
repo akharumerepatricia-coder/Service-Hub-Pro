@@ -1,22 +1,39 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Canvica Cleaning Services CRM API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: public
+    description: Public endpoints (no auth)
+  - name: leads
+    description: Lead management
+  - name: customers
+    description: Customer management
+  - name: jobs
+    description: Job scheduling
+  - name: quotes
+    description: Quotations
+  - name: invoices
+    description: Invoices
+  - name: employees
+    description: Staff/employee management
+  - name: communications
+    description: Communication history
+  - name: dashboard
+    description: Dashboard and analytics
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +41,1133 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── PUBLIC ENDPOINTS ───────────────────────────────────────────────────────
+
+  /public/inquiry:
+    post:
+      operationId: submitInquiry
+      tags: [public]
+      summary: Submit a booking inquiry (creates a lead)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InquiryInput"
+      responses:
+        "201":
+          description: Inquiry submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /public/calculate-quote:
+    post:
+      operationId: calculateQuotePublic
+      tags: [public]
+      summary: Calculate a quote from property details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteCalculatorInput"
+      responses:
+        "200":
+          description: Quote estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteEstimate"
+
+  # ─── DASHBOARD ──────────────────────────────────────────────────────────────
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get all dashboard KPIs and stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/revenue:
+    get:
+      operationId: getDashboardRevenue
+      tags: [dashboard]
+      summary: Revenue breakdown by period
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, quarter, year]
+          required: false
+      responses:
+        "200":
+          description: Revenue data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueData"
+
+  /dashboard/health:
+    get:
+      operationId: getBusinessHealth
+      tags: [dashboard]
+      summary: Business health score and indicators
+      responses:
+        "200":
+          description: Health score data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessHealth"
+
+  /dashboard/top-customers:
+    get:
+      operationId: getTopCustomers
+      tags: [dashboard]
+      summary: Top customers by lifetime value
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 5
+      responses:
+        "200":
+          description: Top customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopCustomer"
+
+  /dashboard/top-employees:
+    get:
+      operationId: getTopEmployees
+      tags: [dashboard]
+      summary: Top performing employees
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: number
+            default: 5
+      responses:
+        "200":
+          description: Top employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopEmployee"
+
+  /dashboard/today-route:
+    get:
+      operationId: getTodayRoute
+      tags: [dashboard]
+      summary: Today's job route map data
+      responses:
+        "200":
+          description: Route map jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RouteJob"
+
+  # ─── LEADS ──────────────────────────────────────────────────────────────────
+
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List leads with optional filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, contacted, quoted, won, lost]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Create a lead manually
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "201":
+          description: Created lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get a lead by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpdate"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteLead
+      tags: [leads]
+      summary: Delete a lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /leads/{id}/convert:
+    post:
+      operationId: convertLead
+      tags: [leads]
+      summary: Convert a lead to a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Customer created from lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+
+  /leads/stats:
+    get:
+      operationId: getLeadStats
+      tags: [leads]
+      summary: Lead pipeline stats
+      responses:
+        "200":
+          description: Lead stats by status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadStats"
+
+  # ─── CUSTOMERS ──────────────────────────────────────────────────────────────
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, prospect, vip]
+        - name: propertyType
+          in: query
+          schema:
+            type: string
+            enum: [residential, commercial]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: recurring
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Customers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get customer by ID with full profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Customer profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /customers/{id}/timeline:
+    get:
+      operationId: getCustomerTimeline
+      tags: [customers]
+      summary: Get customer activity timeline
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Activity events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimelineEvent"
+
+  /customers/{id}/ai-summary:
+    get:
+      operationId: getCustomerAiSummary
+      tags: [customers]
+      summary: Get AI-generated customer summary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: AI summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSummary"
+
+  # ─── JOBS ───────────────────────────────────────────────────────────────────
+
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [jobs]
+      summary: List jobs with optional filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [scheduled, in_progress, completed, cancelled, late]
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: customerId
+          in: query
+          schema:
+            type: number
+        - name: employeeId
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Jobs list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+    post:
+      operationId: createJob
+      tags: [jobs]
+      summary: Create a job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobInput"
+      responses:
+        "201":
+          description: Created job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+
+  /jobs/{id}:
+    get:
+      operationId: getJob
+      tags: [jobs]
+      summary: Get job by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateJob
+      tags: [jobs]
+      summary: Update a job
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobUpdate"
+      responses:
+        "200":
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteJob
+      tags: [jobs]
+      summary: Delete a job
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /jobs/today:
+    get:
+      operationId: getTodayJobs
+      tags: [jobs]
+      summary: Get all jobs scheduled for today
+      responses:
+        "200":
+          description: Today's jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+
+  /jobs/upcoming:
+    get:
+      operationId: getUpcomingJobs
+      tags: [jobs]
+      summary: Get upcoming jobs for the next 7 days
+      responses:
+        "200":
+          description: Upcoming jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+
+  /jobs/{id}/status:
+    patch:
+      operationId: updateJobStatus
+      tags: [jobs]
+      summary: Update job status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobStatusUpdate"
+      responses:
+        "200":
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+
+  # ─── QUOTES ─────────────────────────────────────────────────────────────────
+
+  /quotes:
+    get:
+      operationId: listQuotes
+      tags: [quotes]
+      summary: List quotes
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, sent, accepted, rejected, expired]
+        - name: customerId
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Quotes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quote"
+    post:
+      operationId: createQuote
+      tags: [quotes]
+      summary: Create a quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Created quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/{id}:
+    get:
+      operationId: getQuote
+      tags: [quotes]
+      summary: Get quote by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateQuote
+      tags: [quotes]
+      summary: Update a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteUpdate"
+      responses:
+        "200":
+          description: Updated quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteQuote
+      tags: [quotes]
+      summary: Delete a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /quotes/{id}/send:
+    post:
+      operationId: sendQuote
+      tags: [quotes]
+      summary: Send quote to customer by email
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Quote sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/{id}/accept:
+    post:
+      operationId: acceptQuote
+      tags: [quotes]
+      summary: Mark quote as accepted
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/{id}/reject:
+    post:
+      operationId: rejectQuote
+      tags: [quotes]
+      summary: Mark quote as rejected
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+
+  /quotes/calculate:
+    post:
+      operationId: calculateQuote
+      tags: [quotes]
+      summary: Calculate pricing for a cleaning job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteCalculatorInput"
+      responses:
+        "200":
+          description: Pricing estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteEstimate"
+
+  # ─── INVOICES ───────────────────────────────────────────────────────────────
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      summary: List invoices
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, sent, paid, overdue, cancelled]
+        - name: customerId
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Invoices list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      summary: Create an invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Created invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      summary: Get invoice by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateInvoice
+      tags: [invoices]
+      summary: Update an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceUpdate"
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteInvoice
+      tags: [invoices]
+      summary: Delete an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /invoices/{id}/send:
+    post:
+      operationId: sendInvoice
+      tags: [invoices]
+      summary: Send invoice to customer by email
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Invoice sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{id}/pay:
+    patch:
+      operationId: markInvoicePaid
+      tags: [invoices]
+      summary: Mark invoice as paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRecord"
+      responses:
+        "200":
+          description: Paid invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  # ─── EMPLOYEES ──────────────────────────────────────────────────────────────
+
+  /employees:
+    get:
+      operationId: listEmployees
+      tags: [employees]
+      summary: List employees
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, on_leave]
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [cleaner, supervisor, manager]
+      responses:
+        "200":
+          description: Employees list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Employee"
+    post:
+      operationId: createEmployee
+      tags: [employees]
+      summary: Create an employee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeInput"
+      responses:
+        "201":
+          description: Created employee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+
+  /employees/{id}:
+    get:
+      operationId: getEmployee
+      tags: [employees]
+      summary: Get employee by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Employee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateEmployee
+      tags: [employees]
+      summary: Update employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeUpdate"
+      responses:
+        "200":
+          description: Updated employee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteEmployee
+      tags: [employees]
+      summary: Delete employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /employees/available-today:
+    get:
+      operationId: getAvailableEmployeesToday
+      tags: [employees]
+      summary: Get employees available today
+      responses:
+        "200":
+          description: Available employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Employee"
+
+  /employees/{id}/jobs:
+    get:
+      operationId: listJobsByEmployee
+      tags: [employees]
+      summary: Get jobs assigned to an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Employee jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+
+  # ─── COMMUNICATIONS ──────────────────────────────────────────────────────────
+
+  /communications:
+    get:
+      operationId: listCommunications
+      tags: [communications]
+      summary: List communications
+      parameters:
+        - name: customerId
+          in: query
+          schema:
+            type: number
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [email, phone, sms, note, meeting]
+      responses:
+        "200":
+          description: Communications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Communication"
+    post:
+      operationId: createCommunication
+      tags: [communications]
+      summary: Log a communication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunicationInput"
+      responses:
+        "201":
+          description: Created communication
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Communication"
+
+  /communications/{id}:
+    delete:
+      operationId: deleteCommunication
+      tags: [communications]
+      summary: Delete a communication log
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +1178,1178 @@ components:
       required:
         - status
 
+    # ─── DASHBOARD SCHEMAS ─────────────────────────────────────────────────────
+
+    DashboardStats:
+      type: object
+      required:
+        - revenueToday
+        - revenueThisMonth
+        - jobsToday
+        - jobsThisMonth
+        - outstandingInvoicesCount
+        - outstandingInvoicesAmount
+        - upcomingJobsCount
+        - lateJobsCount
+        - cancelledJobsThisMonth
+        - cleanerUtilizationPercent
+        - availableStaffCount
+        - recurringCustomersCount
+        - customerSatisfactionScore
+        - averageReviewScore
+        - averageJobValue
+        - totalCustomers
+        - totalLeads
+      properties:
+        revenueToday:
+          type: number
+        revenueThisMonth:
+          type: number
+        jobsToday:
+          type: number
+        jobsThisMonth:
+          type: number
+        outstandingInvoicesCount:
+          type: number
+        outstandingInvoicesAmount:
+          type: number
+        upcomingJobsCount:
+          type: number
+        lateJobsCount:
+          type: number
+        cancelledJobsThisMonth:
+          type: number
+        cleanerUtilizationPercent:
+          type: number
+        availableStaffCount:
+          type: number
+        recurringCustomersCount:
+          type: number
+        customerSatisfactionScore:
+          type: number
+        averageReviewScore:
+          type: number
+        averageJobValue:
+          type: number
+        totalCustomers:
+          type: number
+        totalLeads:
+          type: number
+
+    RevenueData:
+      type: object
+      required: [period, total, data]
+      properties:
+        period:
+          type: string
+        total:
+          type: number
+        data:
+          type: array
+          items:
+            type: object
+            required: [label, amount]
+            properties:
+              label:
+                type: string
+              amount:
+                type: number
+
+    BusinessHealth:
+      type: object
+      required: [score, grade, indicators]
+      properties:
+        score:
+          type: number
+        grade:
+          type: string
+        indicators:
+          type: array
+          items:
+            type: object
+            required: [name, value, status]
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+              status:
+                type: string
+                enum: [good, warning, critical]
+
+    TopCustomer:
+      type: object
+      required: [id, name, lifetimeValue, jobsCount, status]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        lifetimeValue:
+          type: number
+        jobsCount:
+          type: number
+        status:
+          type: string
+
+    TopEmployee:
+      type: object
+      required: [id, name, jobsCompleted, rating, utilizationPercent]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        jobsCompleted:
+          type: number
+        rating:
+          type: number
+        utilizationPercent:
+          type: number
+
+    RouteJob:
+      type: object
+      required: [id, customerName, address, scheduledTime, status, lat, lng]
+      properties:
+        id:
+          type: number
+        customerName:
+          type: string
+        address:
+          type: string
+        scheduledTime:
+          type: string
+        status:
+          type: string
+        lat:
+          type: ["number", "null"]
+        lng:
+          type: ["number", "null"]
+        employeeName:
+          type: ["string", "null"]
+
+    # ─── LEAD SCHEMAS ─────────────────────────────────────────────────────────
+
+    Lead:
+      type: object
+      required: [id, name, email, phone, status, serviceType, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: ["string", "null"]
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        propertyType:
+          type: ["string", "null"]
+        bedrooms:
+          type: ["integer", "null"]
+        bathrooms:
+          type: ["integer", "null"]
+        squareFootage:
+          type: ["integer", "null"]
+        cleaningType:
+          type: ["string", "null"]
+        frequency:
+          type: ["string", "null"]
+        preferredDate:
+          type: ["string", "null"]
+        message:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [new, contacted, quoted, won, lost]
+        referralSource:
+          type: ["string", "null"]
+        estimatedValue:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LeadInput:
+      type: object
+      required: [name, email, phone, serviceType]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        propertyType:
+          type: string
+        bedrooms:
+          type: number
+        bathrooms:
+          type: number
+        squareFootage:
+          type: number
+        cleaningType:
+          type: string
+        frequency:
+          type: string
+        preferredDate:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [new, contacted, quoted, won, lost]
+        referralSource:
+          type: string
+        estimatedValue:
+          type: number
+        notes:
+          type: string
+
+    LeadUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        propertyType:
+          type: string
+        bedrooms:
+          type: number
+        bathrooms:
+          type: number
+        squareFootage:
+          type: number
+        cleaningType:
+          type: string
+        frequency:
+          type: string
+        preferredDate:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [new, contacted, quoted, won, lost]
+        referralSource:
+          type: string
+        estimatedValue:
+          type: number
+        notes:
+          type: string
+
+    InquiryInput:
+      type: object
+      required: [name, email, phone, serviceType]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        propertyType:
+          type: string
+        bedrooms:
+          type: number
+        bathrooms:
+          type: number
+        squareFootage:
+          type: number
+        cleaningType:
+          type: string
+        frequency:
+          type: string
+        preferredDate:
+          type: string
+        message:
+          type: string
+        referralSource:
+          type: string
+
+    LeadStats:
+      type: object
+      required: [new, contacted, quoted, won, lost, total, conversionRate]
+      properties:
+        new:
+          type: number
+        contacted:
+          type: number
+        quoted:
+          type: number
+        won:
+          type: number
+        lost:
+          type: number
+        total:
+          type: number
+        conversionRate:
+          type: number
+
+    # ─── CUSTOMER SCHEMAS ─────────────────────────────────────────────────────
+
+    Customer:
+      type: object
+      required: [id, name, email, phone, status, serviceType, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: ["string", "null"]
+        gpsLat:
+          type: ["number", "null"]
+        gpsLng:
+          type: ["number", "null"]
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        propertyType:
+          type: ["string", "null"]
+        bedrooms:
+          type: ["integer", "null"]
+        bathrooms:
+          type: ["integer", "null"]
+        squareFootage:
+          type: ["integer", "null"]
+        entryInstructions:
+          type: ["string", "null"]
+        alarmCode:
+          type: ["string", "null"]
+        gateCode:
+          type: ["string", "null"]
+        pets:
+          type: ["string", "null"]
+        preferredProducts:
+          type: ["string", "null"]
+        cleaningPreferences:
+          type: ["string", "null"]
+        specialInstructions:
+          type: ["string", "null"]
+        recurringSchedule:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, inactive, prospect, vip]
+        referralSource:
+          type: ["string", "null"]
+        lifetimeValue:
+          type: number
+        isRecurring:
+          type: boolean
+        satisfactionScore:
+          type: ["number", "null"]
+        reviewScore:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CustomerDetail:
+      type: object
+      required: [id, name, email, phone, status, serviceType, createdAt, recentJobs, recentCommunications, openInvoices]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: ["string", "null"]
+        gpsLat:
+          type: ["number", "null"]
+        gpsLng:
+          type: ["number", "null"]
+        serviceType:
+          type: string
+        propertyType:
+          type: ["string", "null"]
+        bedrooms:
+          type: ["integer", "null"]
+        bathrooms:
+          type: ["integer", "null"]
+        squareFootage:
+          type: ["integer", "null"]
+        entryInstructions:
+          type: ["string", "null"]
+        alarmCode:
+          type: ["string", "null"]
+        gateCode:
+          type: ["string", "null"]
+        pets:
+          type: ["string", "null"]
+        preferredProducts:
+          type: ["string", "null"]
+        cleaningPreferences:
+          type: ["string", "null"]
+        specialInstructions:
+          type: ["string", "null"]
+        recurringSchedule:
+          type: ["string", "null"]
+        status:
+          type: string
+        referralSource:
+          type: ["string", "null"]
+        lifetimeValue:
+          type: number
+        isRecurring:
+          type: boolean
+        satisfactionScore:
+          type: ["number", "null"]
+        reviewScore:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        recentJobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Job"
+        recentCommunications:
+          type: array
+          items:
+            $ref: "#/components/schemas/Communication"
+        openInvoices:
+          type: array
+          items:
+            $ref: "#/components/schemas/Invoice"
+        totalJobsCount:
+          type: number
+        aiSummary:
+          type: ["string", "null"]
+
+    CustomerInput:
+      type: object
+      required: [name, email, phone, serviceType]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        gpsLat:
+          type: number
+        gpsLng:
+          type: number
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        propertyType:
+          type: string
+        bedrooms:
+          type: number
+        bathrooms:
+          type: number
+        squareFootage:
+          type: number
+        entryInstructions:
+          type: string
+        alarmCode:
+          type: string
+        gateCode:
+          type: string
+        pets:
+          type: string
+        preferredProducts:
+          type: string
+        cleaningPreferences:
+          type: string
+        specialInstructions:
+          type: string
+        recurringSchedule:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, prospect, vip]
+        referralSource:
+          type: string
+        isRecurring:
+          type: boolean
+        notes:
+          type: string
+
+    CustomerUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        gpsLat:
+          type: number
+        gpsLng:
+          type: number
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        propertyType:
+          type: string
+        bedrooms:
+          type: number
+        bathrooms:
+          type: number
+        squareFootage:
+          type: number
+        entryInstructions:
+          type: string
+        alarmCode:
+          type: string
+        gateCode:
+          type: string
+        pets:
+          type: string
+        preferredProducts:
+          type: string
+        cleaningPreferences:
+          type: string
+        specialInstructions:
+          type: string
+        recurringSchedule:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, prospect, vip]
+        referralSource:
+          type: string
+        isRecurring:
+          type: boolean
+        satisfactionScore:
+          type: number
+        reviewScore:
+          type: number
+        notes:
+          type: string
+
+    TimelineEvent:
+      type: object
+      required: [id, type, title, description, date]
+      properties:
+        id:
+          type: number
+        type:
+          type: string
+          enum: [job, quote, invoice, communication, note]
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        amount:
+          type: ["number", "null"]
+        status:
+          type: ["string", "null"]
+
+    AiSummary:
+      type: object
+      required: [summary, keyPoints, recommendations]
+      properties:
+        summary:
+          type: string
+        keyPoints:
+          type: array
+          items:
+            type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        lastUpdated:
+          type: string
+          format: date-time
+
+    # ─── JOB SCHEMAS ──────────────────────────────────────────────────────────
+
+    Job:
+      type: object
+      required: [id, customerId, customerName, serviceType, cleaningType, status, scheduledDate, scheduledTime, price, createdAt]
+      properties:
+        id:
+          type: number
+        customerId:
+          type: number
+        customerName:
+          type: string
+        customerAddress:
+          type: ["string", "null"]
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        cleaningType:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled, late]
+        scheduledDate:
+          type: string
+          format: date
+        scheduledTime:
+          type: string
+        durationHours:
+          type: ["number", "null"]
+        price:
+          type: number
+        assignedEmployeeIds:
+          type: array
+          items:
+            type: number
+        assignedEmployeeNames:
+          type: array
+          items:
+            type: string
+        notes:
+          type: ["string", "null"]
+        completionNotes:
+          type: ["string", "null"]
+        customerRating:
+          type: ["number", "null"]
+        isRecurring:
+          type: boolean
+        recurrencePattern:
+          type: ["string", "null"]
+        invoiceId:
+          type: ["integer", "null"]
+        quoteId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    JobInput:
+      type: object
+      required: [customerId, serviceType, cleaningType, scheduledDate, scheduledTime, price]
+      properties:
+        customerId:
+          type: number
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        cleaningType:
+          type: string
+        scheduledDate:
+          type: string
+          format: date
+        scheduledTime:
+          type: string
+        durationHours:
+          type: number
+        price:
+          type: number
+        assignedEmployeeIds:
+          type: array
+          items:
+            type: number
+        notes:
+          type: string
+        isRecurring:
+          type: boolean
+        recurrencePattern:
+          type: string
+        quoteId:
+          type: number
+
+    JobUpdate:
+      type: object
+      properties:
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        cleaningType:
+          type: string
+        scheduledDate:
+          type: string
+          format: date
+        scheduledTime:
+          type: string
+        durationHours:
+          type: number
+        price:
+          type: number
+        assignedEmployeeIds:
+          type: array
+          items:
+            type: number
+        notes:
+          type: string
+        completionNotes:
+          type: string
+        customerRating:
+          type: number
+        isRecurring:
+          type: boolean
+        recurrencePattern:
+          type: string
+
+    JobStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [scheduled, in_progress, completed, cancelled, late]
+        completionNotes:
+          type: string
+        customerRating:
+          type: number
+
+    # ─── QUOTE SCHEMAS ────────────────────────────────────────────────────────
+
+    Quote:
+      type: object
+      required: [id, customerId, customerName, status, lineItems, subtotal, tax, total, createdAt]
+      properties:
+        id:
+          type: number
+        customerId:
+          type: number
+        customerName:
+          type: string
+        customerEmail:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [draft, sent, accepted, rejected, expired]
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        subtotal:
+          type: number
+        taxRate:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        notes:
+          type: ["string", "null"]
+        validUntil:
+          type: ["string", "null"]
+          format: date
+        sentAt:
+          type: ["string", "null"]
+          format: date-time
+        acceptedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    QuoteLineItem:
+      type: object
+      required: [description, quantity, unitPrice, total]
+      properties:
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        total:
+          type: number
+
+    QuoteInput:
+      type: object
+      required: [customerId, lineItems]
+      properties:
+        customerId:
+          type: number
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        taxRate:
+          type: number
+        notes:
+          type: string
+        validUntil:
+          type: string
+          format: date
+
+    QuoteUpdate:
+      type: object
+      properties:
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        taxRate:
+          type: number
+        notes:
+          type: string
+        validUntil:
+          type: string
+          format: date
+
+    QuoteCalculatorInput:
+      type: object
+      required: [serviceType, cleaningType]
+      properties:
+        serviceType:
+          type: string
+          enum: [residential, commercial]
+        cleaningType:
+          type: string
+          enum: [standard, deep, move_in_out, post_construction, recurring]
+        bedrooms:
+          type: number
+        bathrooms:
+          type: number
+        squareFootage:
+          type: number
+        extras:
+          type: array
+          items:
+            type: string
+        frequency:
+          type: string
+          enum: [one_time, weekly, biweekly, monthly]
+
+    QuoteEstimate:
+      type: object
+      required: [basePrice, extras, subtotal, tax, total, lineItems, notes]
+      properties:
+        basePrice:
+          type: number
+        extras:
+          type: array
+          items:
+            type: object
+            required: [name, price]
+            properties:
+              name:
+                type: string
+              price:
+                type: number
+        subtotal:
+          type: number
+        taxRate:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        discountPercent:
+          type: number
+        discountAmount:
+          type: number
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        notes:
+          type: string
+
+    # ─── INVOICE SCHEMAS ──────────────────────────────────────────────────────
+
+    Invoice:
+      type: object
+      required: [id, customerId, customerName, status, lineItems, subtotal, tax, total, dueDate, createdAt]
+      properties:
+        id:
+          type: number
+        invoiceNumber:
+          type: string
+        customerId:
+          type: number
+        customerName:
+          type: string
+        customerEmail:
+          type: ["string", "null"]
+        jobId:
+          type: ["integer", "null"]
+        status:
+          type: string
+          enum: [draft, sent, paid, overdue, cancelled]
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        subtotal:
+          type: number
+        taxRate:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        paidAmount:
+          type: number
+        paymentMethod:
+          type: ["string", "null"]
+        paymentDate:
+          type: ["string", "null"]
+          format: date
+        dueDate:
+          type: string
+          format: date
+        sentAt:
+          type: ["string", "null"]
+          format: date-time
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    InvoiceInput:
+      type: object
+      required: [customerId, lineItems, dueDate]
+      properties:
+        customerId:
+          type: number
+        jobId:
+          type: number
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        taxRate:
+          type: number
+        dueDate:
+          type: string
+          format: date
+        notes:
+          type: string
+
+    InvoiceUpdate:
+      type: object
+      properties:
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItem"
+        taxRate:
+          type: number
+        dueDate:
+          type: string
+          format: date
+        notes:
+          type: string
+        status:
+          type: string
+          enum: [draft, sent, paid, overdue, cancelled]
+
+    PaymentRecord:
+      type: object
+      required: [paidAmount, paymentMethod]
+      properties:
+        paidAmount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [cash, card, bank_transfer, cheque, other]
+        paymentDate:
+          type: string
+          format: date
+        notes:
+          type: string
+
+    # ─── EMPLOYEE SCHEMAS ─────────────────────────────────────────────────────
+
+    Employee:
+      type: object
+      required: [id, name, email, phone, role, status, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [cleaner, supervisor, manager]
+        status:
+          type: string
+          enum: [active, inactive, on_leave]
+        hireDate:
+          type: ["string", "null"]
+          format: date
+        hourlyRate:
+          type: ["number", "null"]
+        skills:
+          type: array
+          items:
+            type: string
+        jobsCompleted:
+          type: number
+        averageRating:
+          type: ["number", "null"]
+        utilizationPercent:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EmployeeInput:
+      type: object
+      required: [name, email, phone, role]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [cleaner, supervisor, manager]
+        status:
+          type: string
+          enum: [active, inactive, on_leave]
+        hireDate:
+          type: string
+          format: date
+        hourlyRate:
+          type: number
+        skills:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    EmployeeUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [cleaner, supervisor, manager]
+        status:
+          type: string
+          enum: [active, inactive, on_leave]
+        hireDate:
+          type: string
+          format: date
+        hourlyRate:
+          type: number
+        skills:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+
+    # ─── COMMUNICATION SCHEMAS ────────────────────────────────────────────────
+
+    Communication:
+      type: object
+      required: [id, customerId, type, subject, content, direction, createdAt]
+      properties:
+        id:
+          type: number
+        customerId:
+          type: number
+        customerName:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [email, phone, sms, note, meeting]
+        subject:
+          type: string
+        content:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound, internal]
+        staffName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    CommunicationInput:
+      type: object
+      required: [customerId, type, subject, content, direction]
+      properties:
+        customerId:
+          type: number
+        type:
+          type: string
+          enum: [email, phone, sms, note, meeting]
+        subject:
+          type: string
+        content:
+          type: string
+        direction:
+          type: string
+          enum: [inbound, outbound, internal]
+        staffName:
+          type: string

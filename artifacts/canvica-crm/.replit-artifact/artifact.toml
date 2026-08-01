@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Canvica Cleaning Services CRM"
+description = "A full-stack CRM and public website for Canvica Cleaning Services. Includes a public-facing SEO-optimised booking/quote page with pricing calculator, and a comprehensive internal CRM with dashboard KPIs, lead management, customer profiles, job scheduling, quotations, invoicing, and employee management for residential and commercial cleaning operations."
+version = "1.0.0"
+id = "artifacts/canvica-crm"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21415
+
+[services.development]
+run = "pnpm --filter @workspace/canvica-crm run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/canvica-crm", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/canvica-crm/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21415"
+BASE_PATH = "/"
