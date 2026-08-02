@@ -23,6 +23,7 @@ import { InvoicesListPage } from './pages/crm/invoices/list';
 import { EmployeesListPage } from './pages/crm/employees/list';
 import { EmployeeDetailPage } from './pages/crm/employees/detail';
 import { PricingPage } from './pages/crm/pricing';
+import { HiringHubPage } from './pages/crm/hiring/list';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient({
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/crm/employees/:id">{(params) => <CrmLayout><EmployeeDetailPage params={params} /></CrmLayout>}</Route>
 
       <Route path="/crm/pricing"><CrmLayout><PricingPage /></CrmLayout></Route>
+      <Route path="/crm/hiring"><CrmLayout><HiringHubPage /></CrmLayout></Route>
 
       <Route><NotFound /></Route>
     </Switch>

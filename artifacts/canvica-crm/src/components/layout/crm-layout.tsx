@@ -8,6 +8,7 @@ import {
   FileText, 
   Receipt, 
   Briefcase,
+  ClipboardList,
   LogOut,
   Bell,
   Search,
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { icon: FileText, label: "Quotes", href: "/crm/quotes" },
   { icon: Receipt, label: "Invoices", href: "/crm/invoices" },
   { icon: Briefcase, label: "Staff", href: "/crm/employees" },
+  { icon: ClipboardList, label: "Hiring Hub", href: "/crm/hiring" },
   { icon: Tag, label: "Pricing", href: "/crm/pricing" },
 ];
 

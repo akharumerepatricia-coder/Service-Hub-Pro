@@ -20,6 +20,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <a href="/#services" className="hover:text-primary transition-colors">Services</a>
             <a href="/#about" className="hover:text-primary transition-colors">About</a>
             <a href="/#testimonials" className="hover:text-primary transition-colors">Reviews</a>
+            <a href="/#careers" className="hover:text-primary transition-colors">Join Us</a>
             <Link href="/book" className="bg-primary text-white px-5 py-2.5 rounded-md hover:bg-primary/90 transition-colors">
               Get a Quote
             </Link>
@@ -47,6 +48,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <a href="/#services" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>Services</a>
             <a href="/#about" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>About</a>
             <a href="/#testimonials" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>Reviews</a>
+            <a href="/#careers" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>Join Us</a>
             <div className="border-t border-white/10 my-2" />
             <Link href="/book" className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-3 rounded-md font-medium text-sm" onClick={() => setMobileOpen(false)}>
               Get an Instant Quote

@@ -1,7 +1,211 @@
 import { Link } from "wouter";
-import { ArrowRight, CheckCircle2, Shield, Clock } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, CheckCircle2, Shield, Clock, Car, Wrench, X } from "lucide-react";
 
+// ── Types & constants ──────────────────────────────────────────────────────────
+const CLEANING_TYPE_OPTIONS = [
+  { id: "residential",       label: "Residential" },
+  { id: "commercial",        label: "Commercial" },
+  { id: "airbnb",            label: "Airbnb / Short-term" },
+  { id: "move_in_out",       label: "Move-in / Move-out" },
+  { id: "post_construction", label: "Post-Construction" },
+  { id: "deep_clean",        label: "Deep Clean" },
+];
+
+const AVAILABILITY_OPTIONS = [
+  { id: "weekdays", label: "Weekdays" },
+  { id: "weekends", label: "Weekends" },
+  { id: "mornings", label: "Mornings" },
+  { id: "evenings", label: "Evenings" },
+  { id: "flexible", label: "Flexible" },
+];
+
+// ── Application Modal ──────────────────────────────────────────────────────────
+function ApplyModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState<"form" | "success">("form");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    name: "", email: "", phone: "",
+    yearsExperience: 0,
+    hasVehicle: false,
+    hasOwnSupplies: false,
+    message: "",
+  });
+  const [cleaningTypes, setCleaningTypes] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<string[]>([]);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.type === "number" ? Number(e.target.value) : e.target.value }));
+
+  const toggle = (arr: string[], setArr: (v: string[]) => void, val: string) =>
+    setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.phone) { setError("Name, email, and phone are required."); return; }
+    if (cleaningTypes.length === 0) { setError("Please select at least one cleaning type."); return; }
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/public/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, cleaningTypes, availability }),
+      });
+      if (!res.ok) throw new Error("Submission failed");
+      setStep("success");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div className="bg-white text-gray-900 rounded-2xl w-full max-w-xl max-h-[92vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <div>
+            <h2 className="text-xl font-bold font-display text-gray-900">Join Our Team</h2>
+            <p className="text-sm text-gray-500 mt-0.5">Takes 2 minutes — we review every application</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {step === "success" ? (
+          <div className="px-6 py-14 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            </div>
+            <h3 className="text-2xl font-bold font-display mb-3">Application Received!</h3>
+            <p className="text-gray-500 max-w-sm mx-auto mb-8">
+              Thank you for applying to Canvica Cleaning Services. Our team will review your application and be in touch within 2–3 business days.
+            </p>
+            <button onClick={onClose} className="bg-black text-white px-8 py-3 rounded-md font-semibold hover:bg-black/90 transition-colors">
+              Close
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="px-6 py-6 space-y-6">
+            {/* Personal info */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Personal Details</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                  <input type="text" value={form.name} onChange={set("name")} placeholder="Jane Smith" required
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-black/20" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input type="email" value={form.email} onChange={set("email")} placeholder="jane@email.com" required
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-black/20" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                  <input type="tel" value={form.phone} onChange={set("phone")} placeholder="780-555-0100" required
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-black/20" />
+                </div>
+              </div>
+            </div>
+
+            {/* Experience */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Experience</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+                  <select value={form.yearsExperience} onChange={set("yearsExperience")}
+                    className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-black/20">
+                    {[0,1,2,3,4,5,6,7,8,9,10].map(n => (
+                      <option key={n} value={n}>{n === 0 ? "Less than 1 year" : n === 10 ? "10+ years" : `${n} year${n > 1 ? "s" : ""}`}</option>
+                    ))}
+                  </select>
+                </div>
+                <div
+                  onClick={() => setForm(f => ({ ...f, hasVehicle: !f.hasVehicle }))}
+                  className={`flex items-center gap-3 border rounded-md px-4 h-10 cursor-pointer select-none transition-all ${form.hasVehicle ? "border-black bg-black text-white" : "border-gray-200 hover:border-gray-400"}`}
+                >
+                  <Car className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-medium">Own Vehicle</span>
+                </div>
+                <div
+                  onClick={() => setForm(f => ({ ...f, hasOwnSupplies: !f.hasOwnSupplies }))}
+                  className={`flex items-center gap-3 border rounded-md px-4 h-10 cursor-pointer select-none transition-all ${form.hasOwnSupplies ? "border-black bg-black text-white" : "border-gray-200 hover:border-gray-400"}`}
+                >
+                  <Wrench className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-medium">Own Supplies</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Cleaning types */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Cleaning Types You've Done *</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {CLEANING_TYPE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => toggle(cleaningTypes, setCleaningTypes, opt.id)}
+                    className={`px-3 py-2 rounded-md border text-sm font-medium text-left transition-all ${cleaningTypes.includes(opt.id) ? "border-black bg-black text-white" : "border-gray-200 hover:border-gray-400 text-gray-700"}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Availability */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Availability</p>
+              <div className="flex flex-wrap gap-2">
+                {AVAILABILITY_OPTIONS.map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => toggle(availability, setAvailability, opt.id)}
+                    className={`px-3 py-2 rounded-md border text-sm font-medium transition-all ${availability.includes(opt.id) ? "border-black bg-black text-white" : "border-gray-200 hover:border-gray-400 text-gray-700"}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Message */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tell us about yourself <span className="text-gray-400 font-normal">(optional)</span></label>
+              <textarea value={form.message} onChange={set("message")} rows={3}
+                placeholder="Why do you want to join Canvica? Any relevant experience or certifications?"
+                className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 resize-none" />
+            </div>
+
+            {error && <p className="text-red-600 text-sm bg-red-50 rounded-md px-3 py-2">{error}</p>}
+
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={onClose} className="flex-1 h-11 rounded-md border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                Cancel
+              </button>
+              <button type="submit" disabled={submitting}
+                className="flex-1 h-11 rounded-md bg-black text-white text-sm font-semibold hover:bg-black/90 transition-colors disabled:opacity-60">
+                {submitting ? "Submitting…" : "Submit Application"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────────────────────────────────
 export function LandingPage() {
+  const [applyOpen, setApplyOpen] = useState(false);
   return (
     <div className="flex flex-col w-full">
       {/* Hero Section */}
@@ -229,6 +433,63 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Careers / Join Us Section */}
+      <section id="careers" className="py-24 bg-black text-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Left: copy */}
+            <div>
+              <p className="text-primary font-semibold uppercase tracking-widest text-sm mb-4">Join Our Team</p>
+              <h2 className="text-4xl md:text-5xl font-display font-bold text-white leading-tight mb-6">
+                Build a Career You're<br />Proud Of
+              </h2>
+              <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                We're growing and looking for dedicated cleaners to join the Canvica family in Edmonton. Competitive pay, flexible scheduling, and a team that values your work.
+              </p>
+              <ul className="space-y-4 mb-10">
+                {[
+                  "Flexible hours — mornings, evenings, weekdays, weekends",
+                  "Competitive pay with performance bonuses",
+                  "Supplied with equipment and products",
+                  "Supportive, professional team environment",
+                  "Room to grow into supervisor and management roles",
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-3 text-gray-300">
+                    <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => setApplyOpen(true)}
+                className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-md font-semibold text-base hover:bg-primary/90 transition-all hover:scale-105 active:scale-95"
+              >
+                Apply Now <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Right: quick-stats cards */}
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: Clock, title: "Flexible Hours", desc: "Choose shifts that fit your life — full-time or part-time available" },
+                { icon: Shield, title: "Fully Insured", desc: "All team members are covered while on the job, every time" },
+                { icon: CheckCircle2, title: "Paid Training", desc: "Onboarding and ongoing training provided at no cost to you" },
+                { icon: ArrowRight, title: "Room to Grow", desc: "Many supervisors started exactly where you are right now" },
+              ].map(card => (
+                <div key={card.title} className="bg-white/5 border border-white/10 rounded-xl p-6">
+                  <card.icon className="w-7 h-7 text-primary mb-3" />
+                  <h3 className="font-semibold text-white mb-1">{card.title}</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">{card.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Apply modal */}
+      {applyOpen && <ApplyModal onClose={() => setApplyOpen(false)} />}
 
       {/* CTA Section */}
       <section className="py-24 bg-black text-white text-center">
