@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { jobsTable, customersTable, employeesTable } from "@workspace/db";
-import { eq, gte, lte, and, sql, desc } from "drizzle-orm";
+import { eq, gte, lte, and, sql, desc, inArray } from "drizzle-orm";
 import {
   CreateJobBody,
   UpdateJobBody,
@@ -16,10 +16,10 @@ const router: IRouter = Router();
 
 async function enrichJob(j: typeof jobsTable.$inferSelect) {
   const [customer] = await db.select({ name: customersTable.name, address: customersTable.address }).from(customersTable).where(eq(customersTable.id, j.customerId as unknown as number));
-  const empIds = (j.assignedEmployeeIds ?? []) as number[];
+  const empIds = ((j.assignedEmployeeIds ?? []) as number[]).map(n => Math.round(Number(n)));
   let empNames: string[] = [];
   if (empIds.length > 0) {
-    const emps = await db.select({ id: employeesTable.id, name: employeesTable.name }).from(employeesTable).where(sql`id = ANY(${empIds}::int[])`);
+    const emps = await db.select({ id: employeesTable.id, name: employeesTable.name }).from(employeesTable).where(inArray(employeesTable.id, empIds));
     empNames = emps.map(e => e.name);
   }
   return {

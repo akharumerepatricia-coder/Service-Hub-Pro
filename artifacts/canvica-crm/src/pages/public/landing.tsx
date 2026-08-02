@@ -141,6 +141,95 @@ export function LandingPage() {
         </div>
       </section>
       
+      {/* About Section */}
+      <section id="about" className="py-24 bg-background">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-primary font-semibold uppercase tracking-widest text-sm mb-4">About Canvica</p>
+              <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground leading-tight mb-6">
+                Sydney&apos;s Most Trusted Cleaning Professionals
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+                Founded right here in Sydney, Canvica Cleaning Services has spent years perfecting the art of residential and commercial cleaning. We believe a clean space isn&apos;t a luxury — it&apos;s the foundation of a healthy, productive life.
+              </p>
+              <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                Every member of our team is police-checked, fully insured, and trained to our exact standards. We use only eco-friendly, Australian-approved products — safe for your family, pets, and the planet.
+              </p>
+              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-border">
+                {[
+                  { value: "500+", label: "Happy Clients" },
+                  { value: "98%", label: "Satisfaction Rate" },
+                  { value: "6 yrs", label: "In Business" },
+                ].map(stat => (
+                  <div key={stat.label} className="text-center">
+                    <p className="text-3xl font-display font-black text-foreground">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: "🏡", title: "Residential Specialists", desc: "Houses, apartments, and units cleaned to hotel standards." },
+                { icon: "🏢", title: "Commercial Ready", desc: "Offices, retail, and industrial spaces — we handle it all." },
+                { icon: "🌿", title: "Eco-Friendly", desc: "Non-toxic, biodegradable products safe for kids and pets." },
+                { icon: "🔒", title: "Fully Insured", desc: "Police-checked staff and $20M public liability insurance." },
+              ].map(item => (
+                <div key={item.title} className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-3xl mb-3">{item.icon}</div>
+                  <h4 className="font-bold text-foreground mb-1 text-sm">{item.title}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials / Reviews Section */}
+      <section id="testimonials" className="py-24 bg-muted/30">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-16">
+            <p className="text-primary font-semibold uppercase tracking-widest text-sm mb-4">Client Reviews</p>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground">What Our Clients Say</h2>
+            <p className="text-muted-foreground text-xl mt-4 max-w-2xl mx-auto">Don&apos;t just take our word for it — hear from the homeowners and businesses who trust Canvica every week.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Rebecca T.", location: "Mosman, NSW",
+                review: "I&apos;ve tried four different cleaning services over the years. Canvica is in a completely different league. The team remembered exactly how I like things done — no instructions needed after the first visit.",
+                rating: 5, service: "Fortnightly Residential",
+              },
+              {
+                name: "James P.", location: "Surry Hills, NSW",
+                review: "Our office of 35 people has never looked this clean. The team works around our schedule without disruption. Professional, efficient, and incredibly thorough. Highly recommended for any commercial space.",
+                rating: 5, service: "Weekly Commercial",
+              },
+              {
+                name: "Sophie & Ben W.", location: "Lane Cove, NSW",
+                review: "We booked a move-out clean at short notice and Canvica absolutely delivered. Got our full bond back — no questions asked. The team was friendly, fast, and the online booking was so easy.",
+                rating: 5, service: "Move-Out Clean",
+              },
+            ].map(t => (
+              <div key={t.name} className="bg-card border border-border rounded-xl p-7 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                <div className="flex gap-1 mb-4">
+                  {Array(t.rating).fill(0).map((_, i) => (
+                    <span key={i} className="text-yellow-400 text-lg">★</span>
+                  ))}
+                </div>
+                <p className="text-muted-foreground leading-relaxed flex-1 italic mb-6">&ldquo;{t.review}&rdquo;</p>
+                <div className="border-t border-border pt-4">
+                  <p className="font-bold text-foreground">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">{t.location} · {t.service}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 bg-black text-white text-center">
         <div className="container mx-auto px-4 max-w-4xl">

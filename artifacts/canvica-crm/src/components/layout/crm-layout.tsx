@@ -58,7 +58,7 @@ export function CrmLayout({ children }: { children: ReactNode }) {
   const sidebarContent = (
     <>
       <div className="h-16 flex items-center px-6 border-b border-sidebar-border/50 flex-shrink-0">
-        <Link href="/crm/dashboard" className="flex items-center" onClick={closeSidebar}>
+        <Link href="/" className="flex items-center" onClick={closeSidebar}>
           <img src={logoUrl} alt="Canvica CRM" className="h-8 w-auto object-contain mix-blend-screen" />
         </Link>
       </div>
@@ -125,7 +125,7 @@ export function CrmLayout({ children }: { children: ReactNode }) {
             </button>
 
             {/* Mobile logo (shown when sidebar closed) */}
-            <Link href="/crm/dashboard" className="lg:hidden">
+            <Link href="/" className="lg:hidden">
               <img src={logoUrl} alt="Canvica CRM" className="h-7 w-auto object-contain" />
             </Link>
 
