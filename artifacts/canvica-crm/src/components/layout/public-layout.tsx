@@ -10,15 +10,16 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-[100dvh] flex flex-col font-sans">
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black text-white">
-        <div className="container mx-auto px-4 h-24 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-20 w-auto object-contain mix-blend-screen" />
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+          <Link href="/" className="flex items-center h-full overflow-hidden" onClick={() => setMobileOpen(false)}>
+            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-36 w-auto mix-blend-screen flex-shrink-0" />
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="/#services" className="hover:text-primary transition-colors">Services</a>
             <a href="/#about" className="hover:text-primary transition-colors">About</a>
+            <a href="/#testimonials" className="hover:text-primary transition-colors">Reviews</a>
             <Link href="/book" className="bg-primary text-white px-5 py-2.5 rounded-md hover:bg-primary/90 transition-colors">
               Get a Quote
             </Link>
@@ -45,6 +46,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <nav className="flex flex-col px-4 py-4 gap-1">
             <a href="/#services" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>Services</a>
             <a href="/#about" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>About</a>
+            <a href="/#testimonials" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>Reviews</a>
             <div className="border-t border-white/10 my-2" />
             <Link href="/book" className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-3 rounded-md font-medium text-sm" onClick={() => setMobileOpen(false)}>
               Get an Instant Quote
