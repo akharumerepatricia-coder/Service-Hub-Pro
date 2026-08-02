@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLocation } from "wouter";
-import { CheckCircle2, Loader2, ArrowRight, Home, Building2, Calendar, CreditCard, Sparkles, MapPin } from "lucide-react";
+import { CheckCircle2, Loader2, ArrowRight, Home, Building2, Calendar, CreditCard, Sparkles, MapPin, Plus, Minus } from "lucide-react";
 import { 
   useCalculateQuotePublic, 
   useSubmitInquiry 
@@ -16,7 +16,19 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
+// ─── Add-on definitions ────────────────────────────────────────────────────
+const ADDONS = [
+  { id: "kitchen",   label: "Kitchen Clean",  icon: "🍳", desc: "Deep clean benchtops, sink, splashback & stovetop", price: 25 },
+  { id: "fridge",    label: "Fridge Clean",   icon: "🧊", desc: "Interior shelves, drawers & door seals", price: 25 },
+  { id: "oven",      label: "Oven Clean",     icon: "🔥", desc: "Interior racks, glass door & oven cavity",  price: 25 },
+  { id: "staircase", label: "Staircase",      icon: "🪜", desc: "Vacuum, mop & wipe down all balustrades",  price: 25 },
+] as const;
+
+type AddonId = typeof ADDONS[number]["id"];
+
+// ─── Schema ────────────────────────────────────────────────────────────────
 const bookingSchema = z.object({
   serviceType: z.enum(["residential", "commercial"]),
   cleaningType: z.enum(["standard", "deep", "move_in_out", "post_construction", "recurring"]),
@@ -40,6 +52,7 @@ export function BookingPage() {
   const { toast } = useToast();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [quoteEstimate, setQuoteEstimate] = useState<any>(null);
+  const [selectedAddons, setSelectedAddons] = useState<AddonId[]>([]);
 
   const calculateQuote = useCalculateQuotePublic();
   const submitInquiry = useSubmitInquiry();
@@ -70,6 +83,14 @@ export function BookingPage() {
   const cleaningType = form.watch("cleaningType");
   const frequency = form.watch("frequency");
 
+  // Derived add-on total
+  const addonTotal = selectedAddons.length * 25;
+
+  const toggleAddon = (id: AddonId) =>
+    setSelectedAddons(prev =>
+      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+    );
+
   // Debounced quote calculation
   useEffect(() => {
     if (sqft && sqft >= 100) {
@@ -82,7 +103,7 @@ export function BookingPage() {
             bathrooms: bathrooms || 0,
             squareFootage: sqft,
             frequency,
-            extras: []
+            extras: selectedAddons as unknown as string[],
           }
         }, {
           onSuccess: (data) => setQuoteEstimate(data),
@@ -91,7 +112,7 @@ export function BookingPage() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [serviceType, cleaningType, bedrooms, bathrooms, sqft, frequency]);
+  }, [serviceType, cleaningType, bedrooms, bathrooms, sqft, frequency, selectedAddons]);
 
   const onNextStep = async () => {
     let isValid = false;
@@ -108,10 +129,17 @@ export function BookingPage() {
   };
 
   const onSubmit = (data: BookingFormValues) => {
+    // Build a readable list of add-ons for the message
+    const addonNames = selectedAddons.map(id => ADDONS.find(a => a.id === id)?.label).filter(Boolean);
+    const addonNote = addonNames.length > 0
+      ? `\n\nSelected add-ons (+$${addonTotal}): ${addonNames.join(", ")}.`
+      : "";
+
     submitInquiry.mutate({
       data: {
         ...data,
-        referralSource: "Website Form"
+        message: (data.message || "") + addonNote,
+        referralSource: "Website Form",
       }
     }, {
       onSuccess: () => {
@@ -316,8 +344,59 @@ export function BookingPage() {
                       </RadioGroup>
                     </div>
 
+                    {/* ── Add-on extras ─────────────────────────────────────── */}
                     <div>
-                      <Label className="text-base font-semibold mb-4 block">Frequency (Discount applied for recurring)</Label>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label className="text-base font-semibold">Add-On Extras</Label>
+                        <span className="text-sm text-muted-foreground font-medium">$25 each</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">Select any additional areas you'd like us to focus on.</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {ADDONS.map(addon => {
+                          const selected = selectedAddons.includes(addon.id);
+                          return (
+                            <button
+                              key={addon.id}
+                              type="button"
+                              onClick={() => toggleAddon(addon.id)}
+                              className={cn(
+                                "flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all w-full group",
+                                selected
+                                  ? "border-primary bg-primary/5"
+                                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                              )}
+                            >
+                              <span className="text-3xl shrink-0">{addon.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className={cn("font-semibold text-sm", selected ? "text-primary" : "text-foreground")}>
+                                  {addon.label}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-0.5 leading-snug">{addon.desc}</div>
+                              </div>
+                              <div className={cn(
+                                "shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                                selected
+                                  ? "bg-primary border-primary text-white"
+                                  : "border-gray-300 group-hover:border-primary/50"
+                              )}>
+                                {selected
+                                  ? <Minus className="w-3 h-3" />
+                                  : <Plus className="w-3 h-3 text-gray-400 group-hover:text-primary/60" />
+                                }
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {selectedAddons.length > 0 && (
+                        <p className="mt-3 text-sm font-medium text-primary text-center">
+                          {selectedAddons.length} add-on{selectedAddons.length > 1 ? "s" : ""} selected — +${addonTotal} added to your estimate
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="text-base font-semibold mb-4 block">Frequency <span className="text-muted-foreground font-normal">(Discount applied for recurring)</span></Label>
                       <RadioGroup 
                         defaultValue={form.getValues("frequency")} 
                         onValueChange={(val) => form.setValue("frequency", val as any)}
@@ -396,6 +475,23 @@ export function BookingPage() {
                         {form.formState.errors.address && <p className="text-sm text-destructive">{form.formState.errors.address.message}</p>}
                       </div>
                     </div>
+
+                    {/* Selected add-ons recap on step 3 */}
+                    {selectedAddons.length > 0 && (
+                      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+                        <p className="text-sm font-semibold text-primary mb-2">Your selected add-ons</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedAddons.map(id => {
+                            const addon = ADDONS.find(a => a.id === id)!;
+                            return (
+                              <span key={id} className="inline-flex items-center gap-1.5 bg-white border border-primary/20 text-primary text-xs font-medium px-2.5 py-1 rounded-full shadow-sm">
+                                {addon.icon} {addon.label} <span className="text-muted-foreground">+$25</span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label htmlFor="message">Special Instructions or Notes (Optional)</Label>
@@ -479,6 +575,25 @@ export function BookingPage() {
                         <span>-${quoteEstimate.discountAmount.toFixed(2)}</span>
                       </div>
                     ) : null}
+
+                    {/* Add-on line items */}
+                    {selectedAddons.length > 0 && (
+                      <>
+                        <Separator className="bg-white/10" />
+                        <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Add-on Extras</p>
+                        {selectedAddons.map(id => {
+                          const addon = ADDONS.find(a => a.id === id)!;
+                          return (
+                            <div key={id} className="flex justify-between text-gray-300">
+                              <span className="flex items-center gap-1.5">{addon.icon} {addon.label}</span>
+                              <span>+$25.00</span>
+                            </div>
+                          );
+                        })}
+                        <Separator className="bg-white/10" />
+                      </>
+                    )}
+
                     <div className="flex justify-between text-gray-300">
                       <span>Estimated Tax</span>
                       <span>${quoteEstimate.tax.toFixed(2)}</span>
@@ -486,8 +601,15 @@ export function BookingPage() {
                     <Separator className="bg-white/20 my-4" />
                     <div className="flex justify-between items-end">
                       <span className="text-lg font-medium">Estimated Total</span>
-                      <span className="text-4xl font-bold text-primary">${quoteEstimate.total.toFixed(2)}</span>
+                      <span className="text-4xl font-bold text-primary">
+                        ${(quoteEstimate.total + addonTotal).toFixed(2)}
+                      </span>
                     </div>
+                    {addonTotal > 0 && (
+                      <p className="text-xs text-primary/70 text-right -mt-2">
+                        incl. ${addonTotal} in add-ons
+                      </p>
+                    )}
                     <p className="text-xs text-gray-400 mt-4 text-center">
                       *This is an estimate based on average property conditions. Final price may vary upon inspection.
                     </p>
@@ -498,6 +620,24 @@ export function BookingPage() {
                   </div>
                 )}
               </div>
+
+              {/* Add-ons mini summary when on step 1 or 3 */}
+              {selectedAddons.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3">Selected Add-ons</p>
+                  <div className="space-y-2">
+                    {selectedAddons.map(id => {
+                      const addon = ADDONS.find(a => a.id === id)!;
+                      return (
+                        <div key={id} className="flex items-center justify-between text-sm text-gray-300">
+                          <span>{addon.icon} {addon.label}</span>
+                          <span className="text-primary font-semibold">+$25</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
