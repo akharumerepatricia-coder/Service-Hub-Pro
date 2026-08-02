@@ -10,16 +10,15 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-[100dvh] flex flex-col font-sans">
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black text-white">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-24 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-12 w-auto object-contain mix-blend-screen" />
+            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-20 w-auto object-contain mix-blend-screen" />
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="/#services" className="hover:text-primary transition-colors">Services</a>
             <a href="/#about" className="hover:text-primary transition-colors">About</a>
-            <a href="/#testimonials" className="hover:text-primary transition-colors">Reviews</a>
             <Link href="/book" className="bg-primary text-white px-5 py-2.5 rounded-md hover:bg-primary/90 transition-colors">
               Get a Quote
             </Link>
@@ -46,7 +45,6 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <nav className="flex flex-col px-4 py-4 gap-1">
             <a href="/#services" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>Services</a>
             <a href="/#about" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>About</a>
-            <a href="/#testimonials" className="px-3 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-md transition-colors" onClick={() => setMobileOpen(false)}>Reviews</a>
             <div className="border-t border-white/10 my-2" />
             <Link href="/book" className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-3 rounded-md font-medium text-sm" onClick={() => setMobileOpen(false)}>
               Get an Instant Quote
@@ -65,14 +63,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <footer className="bg-black text-white py-16 border-t border-white/10">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
-            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-10 w-auto object-contain mix-blend-screen mb-6" />
+            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-16 w-auto object-contain mix-blend-screen mb-6" />
             <p className="text-gray-400 max-w-sm mb-6 leading-relaxed">
               Precision, trust, and excellence in every clean. Top-tier residential and commercial cleaning services tailored to your exact needs.
             </p>
             <div className="flex flex-col gap-3 text-gray-400">
-              <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-primary" /><span>1-800-CANVICA</span></div>
+              <div className="flex items-center gap-3"><Phone className="w-4 h-4 text-primary" /><span>1-613-861-5413</span></div>
               <div className="flex items-center gap-3"><Mail className="w-4 h-4 text-primary" /><span>hello@canvicacleaning.com</span></div>
-              <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-primary" /><span>Serving the Greater Metro Area</span></div>
+              <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-primary" /><span>Edmonton, AB</span></div>
             </div>
           </div>
           <div>
