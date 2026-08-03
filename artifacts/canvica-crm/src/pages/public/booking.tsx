@@ -112,6 +112,7 @@ export function BookingPage() {
       }, 500);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [serviceType, cleaningType, bedrooms, bathrooms, sqft, frequency, selectedAddons]);
 
   const onNextStep = async () => {

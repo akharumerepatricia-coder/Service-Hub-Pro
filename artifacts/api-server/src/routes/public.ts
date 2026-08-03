@@ -77,15 +77,25 @@ function calcQuote(d: {
 router.post("/public/inquiry", async (req, res): Promise<void> => {
   const parsed = SubmitInquiryBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [lead] = await db.insert(leadsTable).values({ ...parsed.data, status: "new" }).returning();
-  res.status(201).json(lead);
+  try {
+    const [lead] = await db.insert(leadsTable).values({ ...parsed.data, status: "new" }).returning();
+    res.status(201).json(lead);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    res.status(503).json({ error: "Unable to save inquiry. The database may not be configured yet.", detail: message });
+  }
 });
 
 router.post("/public/calculate-quote", async (req, res): Promise<void> => {
   const parsed = CalculateQuotePublicBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const pricing = await getPricing();
-  res.json(calcQuote(parsed.data, pricing));
+  try {
+    const pricing = await getPricing();
+    res.json(calcQuote(parsed.data, pricing));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    res.status(503).json({ error: "Unable to calculate quote. The database may not be configured yet.", detail: message });
+  }
 });
 
 export default router;
