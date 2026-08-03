@@ -1,5 +1,4 @@
-import path from 'path';
-import { dirname } from 'path';
+import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -30,6 +29,13 @@ if (!isBuild && (Number.isNaN(port) || port <= 0)) {
 // In the Replit dev environment BASE_PATH is set explicitly via the artifact config.
 const basePath = process.env.BASE_PATH ?? '/';
 
+// On Vercel, write directly to <repo-root>/public so Vercel can serve it
+// without a brittle `cp` shell step. Locally, keep output in dist/public.
+const isVercel = process.env.VERCEL === '1';
+const outDir = isVercel
+  ? resolve(__dirname, '..', '..', 'public')
+  : resolve(__dirname, 'dist', 'public');
+
 export default defineConfig({
   base: basePath,
   plugins: [
@@ -46,7 +52,7 @@ export default defineConfig({
       ? [
           await import('@replit/vite-plugin-cartographer').then((m) =>
             m.cartographer({
-              root: path.resolve(__dirname, '..'),
+              root: resolve(__dirname, '..'),
             }),
           ),
           await import('@replit/vite-plugin-dev-banner').then((m) =>
@@ -57,14 +63,14 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@assets': path.resolve(__dirname, '..', '..', 'attached_assets'),
+      '@': resolve(__dirname, 'src'),
+      '@assets': resolve(__dirname, '..', '..', 'attached_assets'),
     },
     dedupe: ['react', 'react-dom'],
   },
-  root: path.resolve(__dirname),
+  root: resolve(__dirname),
   build: {
-    outDir: path.resolve(__dirname, 'dist/public'),
+    outDir,
     emptyOutDir: true,
   },
   server: {
