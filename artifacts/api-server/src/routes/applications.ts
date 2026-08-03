@@ -57,12 +57,18 @@ function validateApplyBody(body: Record<string, unknown>): { error?: string; dat
 router.post("/public/apply", async (req, res): Promise<void> => {
   const validated = validateApplyBody(req.body as Record<string, unknown>);
   if (validated.error) { res.status(400).json({ error: validated.error }); return; }
-  const { autoScore, status } = computeAutoStatus(validated.data!);
-  const [application] = await db
-    .insert(jobApplicationsTable)
-    .values({ ...validated.data!, autoScore, status })
-    .returning();
-  res.status(201).json(application);
+  try {
+    const { autoScore, status } = computeAutoStatus(validated.data!);
+    const [application] = await db
+      .insert(jobApplicationsTable)
+      .values({ ...validated.data!, autoScore, status })
+      .returning();
+    res.status(201).json(application);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    // Surface a clear error rather than an opaque 500
+    res.status(503).json({ error: "Unable to save application. The database may not be configured yet.", detail: message });
+  }
 });
 
 /** CRM: list all applications */

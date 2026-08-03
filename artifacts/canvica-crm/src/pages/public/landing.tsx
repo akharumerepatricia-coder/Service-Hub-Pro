@@ -35,11 +35,19 @@ function ApplyModal({ onClose }: { onClose: () => void }) {
   const [cleaningTypes, setCleaningTypes] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+  // Handles text/email/tel inputs; select values are parsed explicitly below.
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.type === "number" ? Number(e.target.value) : e.target.value }));
+
+  // Select needs explicit Number conversion — e.target.type is "select-one", not "number".
+  const setNum = (k: string) => (e: React.ChangeEvent<HTMLSelectElement>) =>
+    setForm(f => ({ ...f, [k]: Number(e.target.value) }));
 
   const toggle = (arr: string[], setArr: (v: string[]) => void, val: string) =>
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
+
+  // Respect VITE_API_URL when set (separate API deployment), otherwise same-origin.
+  const apiOrigin = (import.meta.env.VITE_API_URL as string | undefined) ?? "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,15 +56,24 @@ function ApplyModal({ onClose }: { onClose: () => void }) {
     setError("");
     setSubmitting(true);
     try {
-      const res = await fetch("/api/public/apply", {
+      const res = await fetch(`${apiOrigin}/api/public/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, cleaningTypes, availability }),
       });
-      if (!res.ok) throw new Error("Submission failed");
+      if (!res.ok) {
+        let msg = "Something went wrong. Please try again.";
+        try {
+          const body = await res.json() as { error?: string; message?: string };
+          if (body.error) msg = body.error;
+          else if (body.message) msg = body.message;
+        } catch { /* ignore JSON parse errors */ }
+        setError(msg);
+        return;
+      }
       setStep("success");
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Could not reach the server. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -119,7 +136,7 @@ function ApplyModal({ onClose }: { onClose: () => void }) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
-                  <select value={form.yearsExperience} onChange={set("yearsExperience")}
+                  <select value={form.yearsExperience} onChange={setNum("yearsExperience")}
                     className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-black/20">
                     {[0,1,2,3,4,5,6,7,8,9,10].map(n => (
                       <option key={n} value={n}>{n === 0 ? "Less than 1 year" : n === 10 ? "10+ years" : `${n} year${n > 1 ? "s" : ""}`}</option>
