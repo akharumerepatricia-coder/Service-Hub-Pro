@@ -46,7 +46,8 @@ router.post("/quotes", async (req, res): Promise<void> => {
   const lineItems = (parsed.data.lineItems ?? []) as LineItem[];
   const taxRate = parsed.data.taxRate ?? 10;
   const { subtotal, tax, total } = calcTotals(lineItems, taxRate);
-  const [quote] = await db.insert(quotesTable).values({ ...parsed.data, lineItems, subtotal, tax, total, taxRate }).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [quote] = await db.insert(quotesTable).values({ ...parsed.data, lineItems, subtotal, tax, total, taxRate } as any).returning();
   res.status(201).json(await enrichQuote(quote));
 });
 
@@ -118,7 +119,8 @@ router.patch("/quotes/:id", async (req, res): Promise<void> => {
   const taxRate = parsed.data.taxRate ?? 10;
   const { subtotal, tax, total } = lineItems.length > 0 ? calcTotals(lineItems, taxRate) : { subtotal: 0, tax: 0, total: 0 };
   const updateData = lineItems.length > 0 ? { ...parsed.data, subtotal, tax, total } : parsed.data;
-  const [quote] = await db.update(quotesTable).set(updateData).where(eq(quotesTable.id, params.data.id as unknown as number)).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [quote] = await db.update(quotesTable).set(updateData as any).where(eq(quotesTable.id, params.data.id as unknown as number)).returning();
   if (!quote) { res.status(404).json({ error: "Quote not found" }); return; }
   res.json(await enrichQuote(quote));
 });

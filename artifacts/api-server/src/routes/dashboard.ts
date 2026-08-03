@@ -69,7 +69,7 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
     upcomingJobsCount: upcomingJobs[0]?.count ?? 0,
     lateJobsCount: lateJobs[0]?.count ?? 0,
     cancelledJobsThisMonth: cancelledJobs[0]?.count ?? 0,
-    cleanerUtilizationPercent: totalEmployees > 0 ? Math.min(100, Math.round(((busyToday[0]?.count ?? 0) / totalEmployees) * 100)) : 0,
+    cleanerUtilizationPercent: totalEmployees > 0 ? Math.min(100, Math.round((((busyToday.rows[0] as { count?: number } | undefined)?.count ?? 0) / totalEmployees) * 100)) : 0,
     availableStaffCount: allEmployees.filter(e => e.status === "active").length,
     recurringCustomersCount: recurringCustomers[0]?.count ?? 0,
     customerSatisfactionScore: allCustomers[0]?.avgSat ?? 0,

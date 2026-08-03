@@ -61,7 +61,8 @@ router.get("/jobs", async (req, res): Promise<void> => {
 router.post("/jobs", async (req, res): Promise<void> => {
   const parsed = CreateJobBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [job] = await db.insert(jobsTable).values(parsed.data).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [job] = await db.insert(jobsTable).values(parsed.data as any).returning();
   const enriched = await enrichJob(job);
   res.status(201).json(enriched);
 });
@@ -79,7 +80,8 @@ router.patch("/jobs/:id", async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const parsed = UpdateJobBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [job] = await db.update(jobsTable).set(parsed.data).where(eq(jobsTable.id, params.data.id as unknown as number)).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [job] = await db.update(jobsTable).set(parsed.data as any).where(eq(jobsTable.id, params.data.id as unknown as number)).returning();
   if (!job) { res.status(404).json({ error: "Job not found" }); return; }
   res.json(await enrichJob(job));
 });
@@ -97,7 +99,8 @@ router.patch("/jobs/:id/status", async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const parsed = UpdateJobStatusBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [job] = await db.update(jobsTable).set(parsed.data).where(eq(jobsTable.id, params.data.id as unknown as number)).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [job] = await db.update(jobsTable).set(parsed.data as any).where(eq(jobsTable.id, params.data.id as unknown as number)).returning();
   if (!job) { res.status(404).json({ error: "Job not found" }); return; }
   // Update customer lifetime value if job completed
   if (parsed.data.status === "completed") {

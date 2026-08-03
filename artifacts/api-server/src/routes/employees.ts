@@ -30,7 +30,8 @@ router.get("/employees", async (req, res): Promise<void> => {
 router.post("/employees", async (req, res): Promise<void> => {
   const parsed = CreateEmployeeBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [employee] = await db.insert(employeesTable).values(parsed.data).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [employee] = await db.insert(employeesTable).values(parsed.data as any).returning();
   res.status(201).json(employee);
 });
 
@@ -47,7 +48,8 @@ router.patch("/employees/:id", async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const parsed = UpdateEmployeeBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [employee] = await db.update(employeesTable).set(parsed.data).where(eq(employeesTable.id, params.data.id as unknown as number)).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [employee] = await db.update(employeesTable).set(parsed.data as any).where(eq(employeesTable.id, params.data.id as unknown as number)).returning();
   if (!employee) { res.status(404).json({ error: "Employee not found" }); return; }
   res.json(employee);
 });

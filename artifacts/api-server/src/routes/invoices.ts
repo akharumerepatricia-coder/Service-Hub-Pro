@@ -44,7 +44,8 @@ router.post("/invoices", async (req, res): Promise<void> => {
   const subtotal = lineItems.reduce((s, li) => s + li.total, 0);
   const tax = subtotal * (taxRate / 100);
   const total = subtotal + tax;
-  const [inv] = await db.insert(invoicesTable).values({ ...parsed.data, lineItems, subtotal, tax, total, taxRate, invoiceNumber: nextInvoiceNumber() }).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [inv] = await db.insert(invoicesTable).values({ ...parsed.data, lineItems, subtotal, tax, total, taxRate, invoiceNumber: nextInvoiceNumber() } as any).returning();
   res.status(201).json(await enrichInvoice(inv));
 });
 
@@ -61,7 +62,8 @@ router.patch("/invoices/:id", async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const parsed = UpdateInvoiceBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
-  const [inv] = await db.update(invoicesTable).set(parsed.data).where(eq(invoicesTable.id, params.data.id as unknown as number)).returning();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [inv] = await db.update(invoicesTable).set(parsed.data as any).where(eq(invoicesTable.id, params.data.id as unknown as number)).returning();
   if (!inv) { res.status(404).json({ error: "Invoice not found" }); return; }
   res.json(await enrichInvoice(inv));
 });
@@ -91,7 +93,7 @@ router.patch("/invoices/:id/pay", async (req, res): Promise<void> => {
     status: "paid",
     paidAmount: parsed.data.paidAmount,
     paymentMethod: parsed.data.paymentMethod,
-    paymentDate: parsed.data.paymentDate ?? new Date().toISOString().split("T")[0],
+    paymentDate: (parsed.data.paymentDate ?? new Date().toISOString().split("T")[0]) as string,
   }).where(eq(invoicesTable.id, params.data.id as unknown as number)).returning();
   if (!inv) { res.status(404).json({ error: "Invoice not found" }); return; }
   res.json(await enrichInvoice(inv));
