@@ -209,42 +209,52 @@ export function LandingPage() {
   return (
     <div className="flex flex-col w-full">
       {/* Hero Section */}
-      <section className="relative bg-black text-white overflow-hidden py-24 lg:py-32 min-h-[560px] flex items-center">
-        <div className="absolute inset-0 z-0 opacity-20">
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10" />
-          <img 
-            src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2940&auto=format&fit=crop" 
-            alt="Clean modern living room" 
-            className="w-full h-full object-cover"
+      <section className="relative bg-black text-white overflow-hidden">
+        {/* Sizing wrapper — gives the section a responsive min-height so the
+            background image always has room to display at natural proportions */}
+        <div className="relative min-h-[520px] sm:min-h-[600px] lg:min-h-[720px] flex items-center">
+
+          {/* Layer 1 — background photo, never stretched */}
+          <img
+            src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2940&auto=format&fit=crop"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none"
+            style={{ opacity: 0.45 }}
           />
-        </div>
-        
-        <div className="container relative z-10 mx-auto px-4">
-          <div className="max-w-3xl">
-            <h1 className="text-5xl lg:text-7xl font-display font-bold leading-tight mb-6">
-              Precision Cleaning.<br />
-              <span className="text-primary">Unmatched Trust.</span>
-            </h1>
-            <p className="text-lg lg:text-xl text-gray-300 mb-8 max-w-2xl leading-relaxed">
-              We deliver premium residential and commercial cleaning services tailored to your exact needs. Experience the difference of true professional care.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/book" className="inline-flex items-center justify-center gap-2 bg-primary text-white px-8 py-4 rounded-md font-medium text-lg hover:bg-primary/90 transition-all hover:scale-105 active:scale-95">
-                Get an Instant Quote <ArrowRight className="w-5 h-5" />
-              </Link>
-              <a href="#services" className="inline-flex items-center justify-center gap-2 bg-white/10 text-white px-8 py-4 rounded-md font-medium text-lg hover:bg-white/20 transition-colors backdrop-blur-sm">
-                Explore Services
-              </a>
-            </div>
-            
-            <div className="mt-12 flex items-center gap-4 text-sm text-gray-400">
-              <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Fully insured</span></div>
-              <span className="text-white/20">|</span>
-              <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Background-checked staff</span></div>
-              <span className="text-white/20">|</span>
-              <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Edmonton, AB</span></div>
+
+          {/* Layer 2 — gradient so left-side text stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-black/20" />
+
+          {/* Layer 3 — content */}
+          <div className="relative z-10 container mx-auto px-4 py-16 lg:py-24 w-full">
+            <div className="max-w-3xl">
+              <h1 className="text-5xl lg:text-7xl font-display font-bold leading-tight mb-6">
+                Precision Cleaning.<br />
+                <span className="text-primary">Unmatched Trust.</span>
+              </h1>
+              <p className="text-lg lg:text-xl text-gray-300 mb-8 max-w-2xl leading-relaxed">
+                We deliver premium residential and commercial cleaning services tailored to your exact needs. Experience the difference of true professional care.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/book" className="inline-flex items-center justify-center gap-2 bg-primary text-white px-8 py-4 rounded-md font-medium text-lg hover:bg-primary/90 transition-all hover:scale-105 active:scale-95">
+                  Get an Instant Quote <ArrowRight className="w-5 h-5" />
+                </Link>
+                <a href="#services" className="inline-flex items-center justify-center gap-2 bg-white/10 text-white px-8 py-4 rounded-md font-medium text-lg hover:bg-white/20 transition-colors backdrop-blur-sm">
+                  Explore Services
+                </a>
+              </div>
+
+              <div className="mt-12 flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Fully insured</span></div>
+                <span className="text-white/20 hidden sm:inline">|</span>
+                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Background-checked staff</span></div>
+                <span className="text-white/20 hidden sm:inline">|</span>
+                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Edmonton, AB</span></div>
+              </div>
             </div>
           </div>
+
         </div>
       </section>
 
