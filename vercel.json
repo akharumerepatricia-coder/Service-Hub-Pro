@@ -2,7 +2,7 @@
   "version": 2,
   "framework": null,
   "buildCommand": "pnpm --filter @workspace/canvica-crm run build",
-  "outputDirectory": "public",
+  "outputDirectory": "artifacts/canvica-crm/dist/public",
   "installCommand": "pnpm install",
   "rewrites": [
     { "source": "/((?!api(?:/|$)).*)", "destination": "/index.html" }

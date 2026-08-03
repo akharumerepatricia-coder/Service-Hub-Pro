@@ -29,12 +29,7 @@ if (!isBuild && (Number.isNaN(port) || port <= 0)) {
 // In the Replit dev environment BASE_PATH is set explicitly via the artifact config.
 const basePath = process.env.BASE_PATH ?? '/';
 
-// On Vercel, write directly to <repo-root>/public so Vercel can serve it
-// without a brittle `cp` shell step. Locally, keep output in dist/public.
-const isVercel = process.env.VERCEL === '1';
-const outDir = isVercel
-  ? resolve(__dirname, '..', '..', 'public')
-  : resolve(__dirname, 'dist', 'public');
+const outDir = resolve(__dirname, 'dist', 'public');
 
 export default defineConfig({
   base: basePath,
