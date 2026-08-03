@@ -38,12 +38,42 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
 export function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
+  const { data: stats, isLoading: statsLoading, error: statsError } = useGetDashboardStats();
   const { data: revenue, isLoading: revLoading } = useGetDashboardRevenue({ period: "month" });
   const { data: health, isLoading: healthLoading } = useGetDashboardBusinessHealth();
   const { data: topCustomers, isLoading: topCustLoading } = useGetTopCustomers({ limit: 5 });
   const { data: topEmployees, isLoading: topEmpLoading } = useGetTopEmployees({ limit: 5 });
   const { data: todayRoute, isLoading: routeLoading } = useGetTodayRoute();
+
+  // Show a visible error banner when the API is unreachable so the page is
+  // never a silent blank screen.
+  if (statsError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertCircle className="w-8 h-8 text-destructive" />
+        </div>
+        <div>
+          <h2 className="text-xl font-display font-bold mb-2">Unable to load dashboard</h2>
+          <p className="text-muted-foreground max-w-md">
+            The API server could not be reached. Make sure{" "}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">DATABASE_URL</code> and{" "}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">SESSION_SECRET</code> are
+            set in your Vercel environment variables, then redeploy.
+          </p>
+          <p className="text-xs text-muted-foreground mt-3 font-mono">
+            {(statsError as Error)?.message ?? "Unknown error"}
+          </p>
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12">

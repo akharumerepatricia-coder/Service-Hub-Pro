@@ -12,7 +12,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black text-white">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center h-full overflow-hidden" onClick={() => setMobileOpen(false)}>
-            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-36 w-auto mix-blend-screen flex-shrink-0" />
+            <img src={logoUrl} alt="Canvica Cleaning Services" className="h-14 w-auto object-contain mix-blend-screen flex-shrink-0" />
           </Link>
 
           {/* Desktop nav */}
