@@ -209,7 +209,7 @@ export function LandingPage() {
   return (
     <div className="flex flex-col w-full">
       {/* Hero Section */}
-      <section className="relative bg-black text-white overflow-hidden py-24 lg:py-32">
+      <section className="relative bg-black text-white overflow-hidden py-24 lg:py-32 min-h-[560px] flex items-center">
         <div className="absolute inset-0 z-0 opacity-20">
           <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10" />
           <img 
