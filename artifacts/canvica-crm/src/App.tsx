@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ErrorBoundary } from './components/error-boundary';
+import { AuthProvider } from './contexts/auth-context';
+import { ProtectedRoute } from './components/protected-route';
 
 // Layouts
 import { PublicLayout } from './components/layout/public-layout';
@@ -11,6 +13,7 @@ import { CrmLayout } from './components/layout/crm-layout';
 // Pages
 import { LandingPage } from './pages/public/landing';
 import { BookingPage } from './pages/public/booking';
+import { CrmLoginPage } from './pages/crm/login';
 import NotFound from '@/pages/not-found';
 import { useEffect, lazy, Suspense } from 'react';
 
@@ -24,6 +27,14 @@ function ScrollToTop() {
   return null;
 }
 
+function CrmRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <CrmLayout>{children}</CrmLayout>
+    </ProtectedRoute>
+  );
+}
+
 function Router() {
   return (
     <Suspense fallback={<div className="flex h-screen items-center justify-center text-muted-foreground">Loading…</div>}>
@@ -32,27 +43,30 @@ function Router() {
       <Route path="/"><PublicLayout><LandingPage /></PublicLayout></Route>
       <Route path="/book"><PublicLayout><BookingPage /></PublicLayout></Route>
 
-      {/* CRM */}
+      {/* CRM login (public) */}
+      <Route path="/crm/login"><CrmLoginPage /></Route>
+
+      {/* CRM (protected) */}
       <Route path="/crm">{() => { window.location.replace("/crm/dashboard"); return null; }}</Route>
-      <Route path="/crm/dashboard"><CrmLayout><DashboardPage /></CrmLayout></Route>
+      <Route path="/crm/dashboard"><CrmRoute><DashboardPage /></CrmRoute></Route>
       
-      <Route path="/crm/leads"><CrmLayout><LeadsListPage /></CrmLayout></Route>
-      <Route path="/crm/leads/:id">{(params) => <CrmLayout><LeadDetailPage params={params} /></CrmLayout>}</Route>
+      <Route path="/crm/leads"><CrmRoute><LeadsListPage /></CrmRoute></Route>
+      <Route path="/crm/leads/:id">{(params) => <CrmRoute><LeadDetailPage params={params} /></CrmRoute>}</Route>
       
-      <Route path="/crm/customers"><CrmLayout><CustomersListPage /></CrmLayout></Route>
-      <Route path="/crm/customers/:id">{(params) => <CrmLayout><CustomerDetailPage params={params} /></CrmLayout>}</Route>
+      <Route path="/crm/customers"><CrmRoute><CustomersListPage /></CrmRoute></Route>
+      <Route path="/crm/customers/:id">{(params) => <CrmRoute><CustomerDetailPage params={params} /></CrmRoute>}</Route>
 
-      <Route path="/crm/jobs"><CrmLayout><JobsListPage /></CrmLayout></Route>
-      <Route path="/crm/jobs/:id">{(params) => !params.id || params.id === 'new' ? <CrmLayout><div className="p-12 text-center text-muted-foreground">New Job Form (Coming Soon)</div></CrmLayout> : <CrmLayout><JobDetailPage params={params} /></CrmLayout>}</Route>
+      <Route path="/crm/jobs"><CrmRoute><JobsListPage /></CrmRoute></Route>
+      <Route path="/crm/jobs/:id">{(params) => !params.id || params.id === 'new' ? <CrmRoute><div className="p-12 text-center text-muted-foreground">New Job Form (Coming Soon)</div></CrmRoute> : <CrmRoute><JobDetailPage params={params} /></CrmRoute>}</Route>
       
-      <Route path="/crm/quotes"><CrmLayout><QuotesListPage /></CrmLayout></Route>
-      <Route path="/crm/invoices"><CrmLayout><InvoicesListPage /></CrmLayout></Route>
+      <Route path="/crm/quotes"><CrmRoute><QuotesListPage /></CrmRoute></Route>
+      <Route path="/crm/invoices"><CrmRoute><InvoicesListPage /></CrmRoute></Route>
       
-      <Route path="/crm/employees"><CrmLayout><EmployeesListPage /></CrmLayout></Route>
-      <Route path="/crm/employees/:id">{(params) => <CrmLayout><EmployeeDetailPage params={params} /></CrmLayout>}</Route>
+      <Route path="/crm/employees"><CrmRoute><EmployeesListPage /></CrmRoute></Route>
+      <Route path="/crm/employees/:id">{(params) => <CrmRoute><EmployeeDetailPage params={params} /></CrmRoute>}</Route>
 
-      <Route path="/crm/pricing"><CrmLayout><PricingPage /></CrmLayout></Route>
-      <Route path="/crm/hiring"><CrmLayout><HiringHubPage /></CrmLayout></Route>
+      <Route path="/crm/pricing"><CrmRoute><PricingPage /></CrmRoute></Route>
+      <Route path="/crm/hiring"><CrmRoute><HiringHubPage /></CrmRoute></Route>
 
       <Route><NotFound /></Route>
     </Switch>
@@ -66,8 +80,10 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-            <ScrollToTop />
-            <Router />
+            <AuthProvider>
+              <ScrollToTop />
+              <Router />
+            </AuthProvider>
           </WouterRouter>
           <Toaster />
         </TooltipProvider>

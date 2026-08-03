@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { leadsTable, pricingSettingsTable } from "@workspace/db";
+import { leadsTable, pricingSettingsTable, jobApplicationsTable } from "@workspace/db";
 import {
   SubmitInquiryBody,
   CalculateQuotePublicBody,
@@ -73,6 +73,42 @@ function calcQuote(d: {
 
   return { basePrice, extras: extrasList, subtotal, taxRate: p.taxRatePercent, tax, total, discountPercent, discountAmount, lineItems, notes: "Prices are estimates. Final quote may vary based on property inspection." };
 }
+
+router.post("/public/apply", async (req, res): Promise<void> => {
+  const body = req.body as Record<string, unknown>;
+  if (typeof body.name !== "string" || body.name.trim().length < 2) { res.status(400).json({ error: "name must be at least 2 characters" }); return; }
+  if (typeof body.email !== "string" || !body.email.includes("@")) { res.status(400).json({ error: "valid email is required" }); return; }
+  if (typeof body.phone !== "string" || body.phone.trim().length < 7) { res.status(400).json({ error: "phone must be at least 7 characters" }); return; }
+
+  const yearsExperience = typeof body.yearsExperience === "number" ? Math.max(0, Math.min(50, Math.floor(body.yearsExperience))) : 0;
+  const cleaningTypes = Array.isArray(body.cleaningTypes) ? (body.cleaningTypes as string[]).filter(s => typeof s === "string") : [];
+  const hasVehicle = body.hasVehicle === true;
+  const hasOwnSupplies = body.hasOwnSupplies === true;
+  const score = yearsExperience * 10 + (hasVehicle ? 15 : 0) + (hasOwnSupplies ? 10 : 0) + cleaningTypes.length * 5;
+  let status = "not_suitable";
+  if (yearsExperience >= 2 && score >= 35) status = "recommended";
+  else if (score >= 20 || yearsExperience >= 1) status = "review";
+
+  try {
+    const [application] = await db.insert(jobApplicationsTable).values({
+      name: body.name.trim(),
+      email: body.email.trim(),
+      phone: body.phone.trim(),
+      yearsExperience,
+      cleaningTypes,
+      availability: Array.isArray(body.availability) ? (body.availability as string[]).filter(s => typeof s === "string") : [],
+      hasOwnSupplies,
+      hasVehicle,
+      message: typeof body.message === "string" ? body.message.trim() : undefined,
+      autoScore: score,
+      status,
+    }).returning();
+    res.status(201).json(application);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    res.status(503).json({ error: "Unable to save application. The database may not be configured yet.", detail: message });
+  }
+});
 
 router.post("/public/inquiry", async (req, res): Promise<void> => {
   const parsed = SubmitInquiryBody.safeParse(req.body);

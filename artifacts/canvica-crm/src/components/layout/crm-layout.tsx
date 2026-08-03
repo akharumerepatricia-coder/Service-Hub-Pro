@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import logoUrl from "@assets/PHOTO-2026-07-30-13-52-03_1785624211974.jpg";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/crm/dashboard" },
@@ -54,8 +55,18 @@ function NavItem({ item, isActive, onClick }: { item: typeof NAV_ITEMS[0]; isAct
 export function CrmLayout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout, email } = useAuth();
 
   const closeSidebar = () => setSidebarOpen(false);
+
+  const handleLogout = async () => {
+    closeSidebar();
+    await logout();
+  };
+
+  const userInitials = email
+    ? email.split("@")[0].slice(0, 2).toUpperCase()
+    : "AM";
 
   const sidebarContent = (
     <>
@@ -75,11 +86,18 @@ export function CrmLayout({ children }: { children: ReactNode }) {
         })}
       </div>
 
-      <div className="p-4 border-t border-sidebar-border/50 flex-shrink-0">
+      <div className="p-4 border-t border-sidebar-border/50 flex-shrink-0 space-y-1">
         <Link href="/" onClick={closeSidebar} className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
-          <LogOut className="w-4 h-4" />
-          Exit to Website
+          <ChevronRight className="w-4 h-4 rotate-180" />
+          Back to Website
         </Link>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
       </div>
     </>
   );
@@ -148,9 +166,13 @@ export function CrmLayout({ children }: { children: ReactNode }) {
             <Link href="/crm/pricing" className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted hidden md:block">
               <Settings className="w-5 h-5" />
             </Link>
-            <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-medium font-display ml-1 cursor-pointer text-sm">
-              AM
-            </div>
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              className="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-medium font-display ml-1 cursor-pointer text-sm hover:bg-primary/20 transition-colors"
+            >
+              {userInitials}
+            </button>
           </div>
         </header>
 
