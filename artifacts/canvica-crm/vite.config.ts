@@ -29,7 +29,7 @@ if (!isBuild && (Number.isNaN(port) || port <= 0)) {
 // In the Replit dev environment BASE_PATH is set explicitly via the artifact config.
 const basePath = process.env.BASE_PATH ?? '/';
 
-const outDir = resolve(__dirname, 'dist', 'public');
+const outDir = resolve(__dirname, 'dist');
 
 export default defineConfig({
   base: basePath,
