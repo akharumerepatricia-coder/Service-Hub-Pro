@@ -1,12 +1,16 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": null,
-  "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/canvica-crm run build",
+
+  "buildCommand": "pnpm --filter @workspace/canvica-crm run build",
   "outputDirectory": "artifacts/canvica-crm/dist",
   "installCommand": "pnpm install",
+
   "rewrites": [
     { "source": "/((?!api(?:/|$)).*)", "destination": "/index.html" }
   ],
+
   "env": {
     "ENABLE_EXPERIMENTAL_COREPACK": "1"
   }
