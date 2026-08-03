@@ -7,6 +7,14 @@ const STAFF_EMAIL = (process.env.STAFF_EMAIL ?? "admin@canvica.com").toLowerCase
 const STAFF_PASSWORD = process.env.STAFF_PASSWORD ?? "canvica2026";
 
 router.post("/auth/login", (req, res) => {
+  // Guard: if SESSION_SECRET was not provided at startup, sessions are non-functional.
+  if (!process.env.SESSION_SECRET) {
+    res.status(503).json({
+      error: "Authentication is not available. SESSION_SECRET is not configured on this deployment.",
+    });
+    return;
+  }
+
   const { email, password } = req.body as { email?: string; password?: string };
 
   if (!email || !password) {
