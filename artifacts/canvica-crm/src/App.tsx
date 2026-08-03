@@ -2,7 +2,6 @@ import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useEffect } from 'react';
 import { ErrorBoundary } from './components/error-boundary';
 
 // Layouts
@@ -12,20 +11,8 @@ import { CrmLayout } from './components/layout/crm-layout';
 // Pages
 import { LandingPage } from './pages/public/landing';
 import { BookingPage } from './pages/public/booking';
-import { DashboardPage } from './pages/crm/dashboard';
-import { LeadsListPage } from './pages/crm/leads/list';
-import { LeadDetailPage } from './pages/crm/leads/detail';
-import { CustomersListPage } from './pages/crm/customers/list';
-import { CustomerDetailPage } from './pages/crm/customers/detail';
-import { JobsListPage } from './pages/crm/jobs/list';
-import { JobDetailPage } from './pages/crm/jobs/detail';
-import { QuotesListPage } from './pages/crm/quotes/list';
-import { InvoicesListPage } from './pages/crm/invoices/list';
-import { EmployeesListPage } from './pages/crm/employees/list';
-import { EmployeeDetailPage } from './pages/crm/employees/detail';
-import { PricingPage } from './pages/crm/pricing';
-import { HiringHubPage } from './pages/crm/hiring/list';
 import NotFound from '@/pages/not-found';
+import { useEffect, lazy, Suspense } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -39,6 +26,7 @@ function ScrollToTop() {
 
 function Router() {
   return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center text-muted-foreground">Loading…</div>}>
     <Switch>
       {/* Public */}
       <Route path="/"><PublicLayout><LandingPage /></PublicLayout></Route>
@@ -68,6 +56,7 @@ function Router() {
 
       <Route><NotFound /></Route>
     </Switch>
+    </Suspense>
   );
 }
 
@@ -88,3 +77,29 @@ function App() {
 }
 
 export default App;
+
+const DashboardPage = lazy(() => import('./pages/crm/dashboard').then((m) => ({ default: m.DashboardPage })));
+
+const CustomerDetailPage = lazy(() => import('./pages/crm/customers/detail').then((m) => ({ default: m.CustomerDetailPage })));
+
+const LeadDetailPage = lazy(() => import('./pages/crm/leads/detail').then((m) => ({ default: m.LeadDetailPage })));
+
+const LeadsListPage = lazy(() => import('./pages/crm/leads/list').then((m) => ({ default: m.LeadsListPage })));
+
+const EmployeeDetailPage = lazy(() => import('./pages/crm/employees/detail').then((m) => ({ default: m.EmployeeDetailPage })));
+
+const PricingPage = lazy(() => import('./pages/crm/pricing').then((m) => ({ default: m.PricingPage })));
+
+const QuotesListPage = lazy(() => import('./pages/crm/quotes/list').then((m) => ({ default: m.QuotesListPage })));
+
+const JobsListPage = lazy(() => import('./pages/crm/jobs/list').then((m) => ({ default: m.JobsListPage })));
+
+const HiringHubPage = lazy(() => import('./pages/crm/hiring/list').then((m) => ({ default: m.HiringHubPage })));
+
+const CustomersListPage = lazy(() => import('./pages/crm/customers/list').then((m) => ({ default: m.CustomersListPage })));
+
+const EmployeesListPage = lazy(() => import('./pages/crm/employees/list').then((m) => ({ default: m.EmployeesListPage })));
+
+const JobDetailPage = lazy(() => import('./pages/crm/jobs/detail').then((m) => ({ default: m.JobDetailPage })));
+
+const InvoicesListPage = lazy(() => import('./pages/crm/invoices/list').then((m) => ({ default: m.InvoicesListPage })));
